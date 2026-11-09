@@ -2,56 +2,43 @@ const bots = {
   botpdg: {
     label: "botpdg",
     phone: "22955724800",
-    uptime: "4h12m",
-    wa: "Connecté",
-    active: true,
+    up: "4h12m",
     metrics: [1284, 312, 47, 19],
+    active: true,
   },
   botpdg2: {
     label: "botpdg2",
     phone: "22952727294",
-    uptime: "1h07m",
-    wa: "Connecté",
-    active: true,
+    up: "1h07m",
     metrics: [402, 88, 11, 4],
+    active: true,
   },
 };
 
-const titles = {
-  overview: "Vue d’ensemble",
-  controls: "Contrôles",
-  pairing: "Pairing",
-  config: "Config",
-};
+let current = "botpdg";
+let pairTimer = null;
 
-let currentBot = "botpdg";
-let pairCountdown = null;
-
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => [...document.querySelectorAll(sel)];
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
 
 function toast(msg) {
   const el = $("#toast");
   el.textContent = msg;
-  el.hidden = false;
+  el.classList.remove("hidden");
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => {
-    el.hidden = true;
-  }, 2200);
+  toast._t = setTimeout(() => el.classList.add("hidden"), 2200);
 }
 
-function animateCounts(values) {
-  $$(".metric-n").forEach((node, i) => {
+function countUp(values) {
+  $$(".figure b").forEach((node, i) => {
     const target = values[i] ?? 0;
     const start = performance.now();
-    const from = 0;
-    const dur = 700;
-    function tick(now) {
-      const t = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - t, 3);
-      node.textContent = Math.round(from + (target - from) * eased).toLocaleString("fr-FR");
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / 650);
+      const e = 1 - (1 - t) ** 3;
+      node.textContent = Math.round(target * e).toLocaleString("fr-FR");
       if (t < 1) requestAnimationFrame(tick);
-    }
+    };
     requestAnimationFrame(tick);
   });
 }
@@ -59,111 +46,93 @@ function animateCounts(values) {
 function applyBot(id) {
   const bot = bots[id];
   if (!bot) return;
-  currentBot = id;
-  $("#active-bot-label").textContent = bot.label;
-  $("#uptime").textContent = bot.uptime;
-  $("#wa-state").textContent = bot.wa;
-  $("#bot-state").textContent = bot.active ? "Actif" : "Pause";
-  $("#bot-state").classList.toggle("ok", bot.active);
-  $("#toggle-active").checked = bot.active;
+  current = id;
+  $("#home-bot").textContent = bot.label;
+  $("#st-up").textContent = bot.up;
+  $("#st-bot").textContent = bot.active ? "Actif" : "Pause";
+  $("#t-active").checked = bot.active;
   $("#pair-phone").value = bot.phone;
-  animateCounts(bot.metrics);
-  $$(".bot-chip").forEach((chip) => {
-    chip.classList.toggle("active", chip.dataset.bot === id);
-  });
+  countUp(bot.metrics);
 }
 
 function setView(view) {
-  $$(".nav-item").forEach((n) => n.classList.toggle("active", n.dataset.view === view));
-  $$(".panel.view").forEach((p) => p.classList.toggle("active", p.id === `view-${view}`));
-  $("#view-title").textContent = titles[view] || view;
-  $("#app").dataset.view = view;
-}
-
-function startPairMock() {
-  const code = "LK9T-R8MG";
-  $("#pair-code").textContent = code;
-  $("#pair-code-wrap").classList.remove("hidden");
-  $(".pair-idle")?.classList.add("hidden");
-  let left = 45;
-  const timer = $("#pair-timer");
-  clearInterval(pairCountdown);
-  const render = () => {
-    const m = Math.floor(left / 60);
-    const s = String(left % 60).padStart(2, "0");
-    timer.textContent = `expire dans ${m}:${s}`;
-  };
-  render();
-  pairCountdown = setInterval(() => {
-    left -= 1;
-    if (left <= 0) {
-      clearInterval(pairCountdown);
-      timer.textContent = "expiré — régénère un code";
-      return;
-    }
-    render();
-  }, 1000);
-  toast("Code pairing généré (mock)");
-}
-
-function resetPair() {
-  clearInterval(pairCountdown);
-  $("#pair-code-wrap").classList.add("hidden");
-  const idle = $(".pair-idle");
-  if (idle) idle.classList.remove("hidden");
-  toast("Pairing réinitialisé");
+  $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.view === view));
+  $$(".view").forEach((v) => v.classList.toggle("active", v.id === `view-${view}`));
 }
 
 $("#enter-app")?.addEventListener("click", () => {
   $("#splash").classList.add("hidden");
   $("#app").classList.remove("hidden");
-  applyBot(currentBot);
+  applyBot(current);
 });
 
-$$(".nav-item").forEach((btn) => {
-  btn.addEventListener("click", () => setView(btn.dataset.view));
+$$(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => setView(tab.dataset.view));
 });
 
-$$(".bot-chip:not([disabled])").forEach((chip) => {
-  chip.addEventListener("click", () => {
-    applyBot(chip.dataset.bot);
-    toast(`Basculé sur ${chip.dataset.bot}`);
-  });
+$$("[data-jump]").forEach((btn) => {
+  btn.addEventListener("click", () => setView(btn.dataset.jump));
+});
+
+$("#bot-select")?.addEventListener("change", (e) => {
+  applyBot(e.target.value);
+  toast(`Bot : ${e.target.value}`);
 });
 
 $("#btn-refresh")?.addEventListener("click", () => {
-  applyBot(currentBot);
-  toast("Statut rafraîchi (mock)");
+  applyBot(current);
+  toast("Actualisé (mock)");
 });
 
-$("#btn-restart")?.addEventListener("click", () => {
-  toast(`Restart demandé pour ${currentBot} (mock)`);
+$("#btn-restart")?.addEventListener("click", () => toast(`Restart ${current} (mock)`));
+
+$("#t-active")?.addEventListener("change", (e) => {
+  bots[current].active = e.target.checked;
+  $("#st-bot").textContent = e.target.checked ? "Actif" : "Pause";
+  toast(e.target.checked ? "Bot actif" : "Bot en pause");
 });
 
-$("#toggle-active")?.addEventListener("change", (e) => {
-  bots[currentBot].active = e.target.checked;
-  $("#bot-state").textContent = e.target.checked ? "Actif" : "Pause";
-  $("#bot-state").classList.toggle("ok", e.target.checked);
-  toast(e.target.checked ? "Bot activé" : "Bot en pause");
-});
-
-["toggle-viewonly", "toggle-antidelete", "toggle-vv", "toggle-react"].forEach((id) => {
-  $(`#${id}`)?.addEventListener("change", () => toast("Réglage mis à jour (mock)"));
+$$(".tog input").forEach((input) => {
+  if (input.id === "t-active") return;
+  input.addEventListener("change", () => toast("Réglage mis à jour (mock)"));
 });
 
 $("#save-emoji")?.addEventListener("click", () => {
-  toast(`Emoji fixé : ${$("#fixed-emoji").value || "—"}`);
+  toast(`Emoji : ${$("#emoji").value || "—"}`);
 });
 
-$("#btn-pair")?.addEventListener("click", startPairMock);
-$("#btn-pair-reset")?.addEventListener("click", resetPair);
+$("#btn-pair")?.addEventListener("click", () => {
+  $("#pair-idle").classList.add("hidden");
+  $("#pair-box").classList.remove("hidden");
+  let left = 45;
+  const timer = $("#pair-timer");
+  clearInterval(pairTimer);
+  const render = () => {
+    timer.textContent = `expire dans ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  };
+  render();
+  pairTimer = setInterval(() => {
+    left -= 1;
+    if (left <= 0) {
+      clearInterval(pairTimer);
+      timer.textContent = "expiré — régénère un code";
+      return;
+    }
+    render();
+  }, 1000);
+  toast("Code généré (mock)");
+});
 
-$("#config-form")?.addEventListener("submit", (e) => {
+$("#btn-pair-reset")?.addEventListener("click", () => {
+  clearInterval(pairTimer);
+  $("#pair-box").classList.add("hidden");
+  $("#pair-idle").classList.remove("hidden");
+  toast("Pairage effacé");
+});
+
+$("#cfg")?.addEventListener("submit", (e) => {
   e.preventDefault();
-  const hint = $("#config-hint");
-  hint.hidden = false;
+  $("#cfg-ok").classList.remove("hidden");
   toast("Config sauvée (mock)");
-  setTimeout(() => {
-    hint.hidden = true;
-  }, 1800);
+  setTimeout(() => $("#cfg-ok").classList.add("hidden"), 1600);
 });

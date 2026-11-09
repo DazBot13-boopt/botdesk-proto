@@ -6,244 +6,287 @@
   <title>Bot Desk — prototype</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
+  <div class="ambient" aria-hidden="true"></div>
 
-  <!-- Intro splash -->
   <section id="splash" class="splash">
-    <div class="splash-inner">
-      <p class="brand-mark">Bot Desk</p>
-      <h1>Pilote tes bots WhatsApp depuis un seul poste.</h1>
-      <p class="lede">Prototype design — statut, on/off, pairing, config. Pas encore branché aux vrais bots.</p>
-      <button type="button" class="btn primary" id="enter-app">Ouvrir le desk</button>
+    <div class="splash-copy">
+      <p class="wordmark">Bot Desk</p>
+      <h1>La salle de contrôle de tes bots WhatsApp.</h1>
+      <p class="lede">Prototype design — fonctions inspirées de ton app, esthétique plus posée. Données fictives.</p>
+      <button type="button" class="btn solid" id="enter-app">Entrer</button>
     </div>
-    <div class="splash-signal" aria-hidden="true">
-      <span class="ring"></span>
-      <span class="ring delay"></span>
-      <span class="core"></span>
-    </div>
+    <aside class="splash-aside" aria-hidden="true">
+      <div class="portrait-frame">
+        <span class="portrait-label">session</span>
+        <strong>2 bots</strong>
+        <span class="portrait-sub">en ligne · mock</span>
+      </div>
+    </aside>
   </section>
 
-  <!-- App shell -->
-  <div id="app" class="app hidden" data-view="overview">
-    <aside class="rail">
-      <div class="rail-brand">
-        <span class="dot live"></span>
-        <strong>Bot Desk</strong>
+  <div id="app" class="shell hidden">
+    <header class="top">
+      <div class="top-brand">
+        <span class="wordmark sm">Bot Desk</span>
+        <span class="sep"></span>
+        <select id="bot-select" aria-label="Bot actif">
+          <option value="botpdg">botpdg · 22955724800</option>
+          <option value="botpdg2">botpdg2 · 22952727294</option>
+        </select>
       </div>
-
-      <nav class="rail-nav" aria-label="Sections">
-        <button type="button" class="nav-item active" data-view="overview">Vue d’ensemble</button>
-        <button type="button" class="nav-item" data-view="controls">Contrôles</button>
-        <button type="button" class="nav-item" data-view="pairing">Pairing</button>
-        <button type="button" class="nav-item" data-view="config">Config</button>
-      </nav>
-
-      <div class="bot-switch">
-        <p class="switch-label">Bots</p>
-        <button type="button" class="bot-chip active" data-bot="botpdg">
-          <span class="chip-name">botpdg</span>
-          <span class="chip-meta">22955724800</span>
-          <span class="chip-state on">online</span>
-        </button>
-        <button type="button" class="bot-chip" data-bot="botpdg2">
-          <span class="chip-name">botpdg2</span>
-          <span class="chip-meta">22952727294</span>
-          <span class="chip-state on">online</span>
-        </button>
-        <button type="button" class="bot-chip muted" data-bot="botpdg3" disabled>
-          <span class="chip-name">botpdg3</span>
-          <span class="chip-meta">prêt · non lié</span>
-          <span class="chip-state off">idle</span>
-        </button>
+      <div class="top-meta">
+        <span class="pill ok" id="conn-pill">WhatsApp lié</span>
+        <button type="button" class="btn quiet" id="btn-refresh">Actualiser</button>
       </div>
+    </header>
 
-      <p class="rail-note">Prototype UI — données fictives</p>
-    </aside>
+    <nav class="tabs" aria-label="Navigation">
+      <button type="button" class="tab active" data-view="home">Accueil</button>
+      <button type="button" class="tab" data-view="controls">Contrôles</button>
+      <button type="button" class="tab" data-view="pair">Pairing</button>
+      <button type="button" class="tab" data-view="status">Statuts</button>
+      <button type="button" class="tab" data-view="inbox">Discussions</button>
+      <button type="button" class="tab" data-view="tools">Outils</button>
+      <button type="button" class="tab" data-view="settings">Réglages</button>
+    </nav>
 
-    <main class="stage">
-      <header class="stage-head">
-        <div>
-          <p class="eyebrow" id="active-bot-label">botpdg</p>
-          <h2 id="view-title">Vue d’ensemble</h2>
-        </div>
-        <div class="head-actions">
-          <button type="button" class="btn ghost" id="btn-refresh">Rafraîchir</button>
-          <button type="button" class="btn danger-soft" id="btn-restart">Restart</button>
-        </div>
-      </header>
-
-      <!-- Overview -->
-      <section class="panel view active" id="view-overview">
-        <div class="status-strip">
-          <div class="status-block">
-            <span class="status-k">WhatsApp</span>
-            <span class="status-v ok" id="wa-state">Connecté</span>
+    <main class="canvas">
+      <!-- Accueil -->
+      <section class="view active" id="view-home">
+        <div class="hero-line">
+          <div>
+            <p class="kicker" id="home-bot">botpdg</p>
+            <h2>Vue d’ensemble</h2>
           </div>
-          <div class="status-block">
-            <span class="status-k">Bot</span>
-            <span class="status-v ok" id="bot-state">Actif</span>
-          </div>
-          <div class="status-block">
-            <span class="status-k">Uptime</span>
-            <span class="status-v mono" id="uptime">4h12m</span>
-          </div>
-          <div class="status-block">
-            <span class="status-k">Préfixe</span>
-            <span class="status-v mono">?</span>
-          </div>
+          <button type="button" class="btn soft" id="btn-restart">Redémarrer</button>
         </div>
 
-        <div class="metrics">
-          <div class="metric">
-            <span class="metric-n" data-count="1284">0</span>
-            <span class="metric-l">Messages traités</span>
-          </div>
-          <div class="metric">
-            <span class="metric-n" data-count="312">0</span>
-            <span class="metric-l">Statuts likés</span>
-          </div>
-          <div class="metric">
-            <span class="metric-n" data-count="47">0</span>
-            <span class="metric-l">VU récupérées</span>
-          </div>
-          <div class="metric">
-            <span class="metric-n" data-count="19">0</span>
-            <span class="metric-l">Supprimés sauvés</span>
-          </div>
+        <div class="stat-row">
+          <article class="stat">
+            <span>Connexion</span>
+            <strong id="st-wa">Connecté</strong>
+          </article>
+          <article class="stat">
+            <span>Bot</span>
+            <strong id="st-bot">Actif</strong>
+          </article>
+          <article class="stat">
+            <span>Uptime</span>
+            <strong class="mono" id="st-up">4h12m</strong>
+          </article>
+          <article class="stat">
+            <span>Préfixe</span>
+            <strong class="mono">?</strong>
+          </article>
         </div>
 
-        <div class="feed">
-          <div class="feed-head">
-            <h3>Flux live</h3>
-            <span class="pulse">en écoute</span>
+        <div class="figure-row">
+          <div class="figure"><b data-n="1284">0</b><span>Messages</span></div>
+          <div class="figure"><b data-n="312">0</b><span>Statuts likés</span></div>
+          <div class="figure"><b data-n="47">0</b><span>VU capturées</span></div>
+          <div class="figure"><b data-n="19">0</b><span>Anti-delete</span></div>
+        </div>
+
+        <div class="split">
+          <div class="block">
+            <div class="block-h"><h3>Activité</h3><span class="live">live</span></div>
+            <ul class="timeline" id="timeline">
+              <li><time>19:24</time><p><code>?menu</code> répondu</p></li>
+              <li><time>19:21</time><p>Statut liké · contact</p></li>
+              <li><time>19:18</time><p>Vue unique capturée</p></li>
+              <li><time>19:12</time><p>Keepalive Instabox OK</p></li>
+            </ul>
           </div>
-          <ul class="feed-list" id="feed-list">
-            <li><time>19:24</time><span>Commande <code>?menu</code> — réponse envoyée</span></li>
-            <li><time>19:21</time><span>Statut liké · contact 229…4800</span></li>
-            <li><time>19:18</time><span>Vue unique capturée · image</span></li>
-            <li><time>19:12</time><span>Keepalive OK · Instabox</span></li>
-          </ul>
+          <div class="block">
+            <div class="block-h"><h3>Raccourcis</h3></div>
+            <div class="shortcuts">
+              <button type="button" class="shortcut" data-jump="pair">Lier un numéro</button>
+              <button type="button" class="shortcut" data-jump="status">Voir les statuts</button>
+              <button type="button" class="shortcut" data-jump="tools">Anti-delete / VU</button>
+              <button type="button" class="shortcut" data-jump="settings">Éditer la config</button>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Controls -->
-      <section class="panel view" id="view-controls">
-        <div class="control-grid">
-          <label class="toggle-row">
-            <div>
-              <strong>Bot actif</strong>
-              <p>Répond aux commandes et exécute les automations.</p>
-            </div>
-            <input type="checkbox" id="toggle-active" checked />
-            <span class="switch" aria-hidden="true"></span>
-          </label>
-          <label class="toggle-row">
-            <div>
-              <strong>View only</strong>
-              <p>Observe sans répondre (sauf owner).</p>
-            </div>
-            <input type="checkbox" id="toggle-viewonly" />
-            <span class="switch" aria-hidden="true"></span>
-          </label>
-          <label class="toggle-row">
-            <div>
-              <strong>Anti-delete</strong>
-              <p>Récupère les messages supprimés.</p>
-            </div>
-            <input type="checkbox" id="toggle-antidelete" checked />
-            <span class="switch" aria-hidden="true"></span>
-          </label>
-          <label class="toggle-row">
-            <div>
-              <strong>Capture VU</strong>
-              <p>Intercepte les vues uniques.</p>
-            </div>
-            <input type="checkbox" id="toggle-vv" checked />
-            <span class="switch" aria-hidden="true"></span>
-          </label>
-          <label class="toggle-row">
-            <div>
-              <strong>Auto-react status</strong>
-              <p>Like automatique des statuts.</p>
-            </div>
-            <input type="checkbox" id="toggle-react" checked />
-            <span class="switch" aria-hidden="true"></span>
-          </label>
+      <!-- Contrôles -->
+      <section class="view" id="view-controls">
+        <h2>Contrôles</h2>
+        <p class="sub">Interrupteurs du bot — mock local.</p>
+        <div class="toggles">
+          <label class="tog"><span><strong>Bot actif</strong><em>Répond et automatise</em></span><input type="checkbox" id="t-active" checked /><i></i></label>
+          <label class="tog"><span><strong>View only</strong><em>Observe sans répondre</em></span><input type="checkbox" id="t-vo" /><i></i></label>
+          <label class="tog"><span><strong>Anti-delete</strong><em>Récupère les suppressions</em></span><input type="checkbox" checked /><i></i></label>
+          <label class="tog"><span><strong>Capture VU</strong><em>Intercepte les vues uniques</em></span><input type="checkbox" checked /><i></i></label>
+          <label class="tog"><span><strong>Auto-react status</strong><em>Like automatique</em></span><input type="checkbox" checked /><i></i></label>
+          <label class="tog"><span><strong>Like mes statuts</strong><em>Réagit aussi aux tiens</em></span><input type="checkbox" checked /><i></i></label>
         </div>
-
-        <div class="emoji-row">
-          <label for="fixed-emoji">Emoji fixe</label>
-          <input id="fixed-emoji" type="text" maxlength="4" value="🔥" />
-          <button type="button" class="btn primary" id="save-emoji">Enregistrer</button>
+        <div class="inline-field">
+          <label for="emoji">Emoji fixe</label>
+          <input id="emoji" maxlength="4" value="🔥" />
+          <button type="button" class="btn solid" id="save-emoji">Enregistrer</button>
         </div>
       </section>
 
       <!-- Pairing -->
-      <section class="panel view" id="view-pairing">
-        <div class="pair-layout">
-          <div class="pair-copy">
-            <h3>Lier WhatsApp</h3>
-            <p>Entre le numéro (indicatif pays, sans +), lance le pairing, puis saisis le code dans WhatsApp → Appareils liés.</p>
+      <section class="view" id="view-pair">
+        <h2>Pairing</h2>
+        <p class="sub">Associe WhatsApp via code — même flux que l’API <code>/api/whatsapp/pair</code>.</p>
+        <div class="pair">
+          <div class="block">
             <label class="field">
-              <span>Numéro</span>
-              <input type="tel" id="pair-phone" value="22952727294" inputmode="numeric" />
+              <span>Numéro (indicatif, sans +)</span>
+              <input type="tel" id="pair-phone" value="22952727294" />
             </label>
-            <div class="pair-actions">
-              <button type="button" class="btn primary" id="btn-pair">Générer le code</button>
-              <button type="button" class="btn ghost" id="btn-pair-reset">Réinitialiser</button>
+            <div class="row">
+              <button type="button" class="btn solid" id="btn-pair">Générer le code</button>
+              <button type="button" class="btn quiet" id="btn-pair-reset">Effacer le pairage</button>
             </div>
           </div>
-          <div class="pair-stage" id="pair-stage">
-            <p class="pair-idle">Pas de code en cours</p>
-            <div class="pair-code hidden" id="pair-code-wrap">
-              <p>Code pairing</p>
+          <div class="block pair-board" id="pair-board">
+            <p class="muted" id="pair-idle">Aucun code en cours</p>
+            <div class="pair-code hidden" id="pair-box">
+              <span>Code WhatsApp</span>
               <strong id="pair-code">LK9T-R8MG</strong>
-              <span class="pair-timer" id="pair-timer">expire dans 0:45</span>
+              <em id="pair-timer">expire dans 0:45</em>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Config -->
-      <section class="panel view" id="view-config">
-        <form class="config-form" id="config-form">
-          <label class="field">
-            <span>Nom du bot</span>
-            <input name="botName" value="bot PDG" />
-          </label>
-          <label class="field">
-            <span>Owner</span>
-            <input name="ownerName" value="PDG" />
-          </label>
-          <label class="field">
-            <span>Préfixe commandes</span>
-            <input name="prefix" value="?" maxlength="3" />
-          </label>
-          <label class="field full">
-            <span>Auto-reply</span>
-            <textarea name="autoReply" rows="3" placeholder="Message automatique (optionnel)"></textarea>
-          </label>
-          <label class="field">
-            <span>Délai status min (s)</span>
-            <input name="delayMin" type="number" value="2" min="0" step="0.5" />
-          </label>
-          <label class="field">
-            <span>Délai status max (s)</span>
-            <input name="delayMax" type="number" value="6" min="0" step="0.5" />
-          </label>
-          <div class="form-actions full">
-            <button type="submit" class="btn primary">Sauver la config</button>
-            <span class="form-hint" id="config-hint" hidden>Enregistré (mock)</span>
+      <!-- Statuts -->
+      <section class="view" id="view-status">
+        <div class="hero-line">
+          <div>
+            <h2>Statuts</h2>
+            <p class="sub">Fil des statuts reçus · mock</p>
+          </div>
+          <button type="button" class="btn soft">Nouveau statut</button>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <div class="avatar">A</div>
+            <div>
+              <strong>Ada</strong>
+              <p>Photo · il y a 12 min</p>
+            </div>
+            <button type="button" class="btn quiet xs">Like</button>
+          </article>
+          <article class="card">
+            <div class="avatar">K</div>
+            <div>
+              <strong>Koffi</strong>
+              <p>Texte · « soirée demain »</p>
+            </div>
+            <button type="button" class="btn quiet xs">Like</button>
+          </article>
+          <article class="card">
+            <div class="avatar">M</div>
+            <div>
+              <strong>Maya</strong>
+              <p>Vidéo · il y a 1 h</p>
+            </div>
+            <button type="button" class="btn quiet xs">Like</button>
+          </article>
+        </div>
+      </section>
+
+      <!-- Discussions -->
+      <section class="view" id="view-inbox">
+        <h2>Discussions</h2>
+        <p class="sub">Conversations vues par le bot · mock</p>
+        <label class="search">
+          <input type="search" placeholder="Rechercher une discussion" />
+        </label>
+        <div class="cards stacked">
+          <article class="card clickable">
+            <div class="avatar">PDG</div>
+            <div>
+              <strong>Moi (owner)</strong>
+              <p>?menu · 19:24</p>
+            </div>
+          </article>
+          <article class="card clickable">
+            <div class="avatar">G</div>
+            <div>
+              <strong>Groupe ops</strong>
+              <p>tagall exécuté · 18:02</p>
+            </div>
+          </article>
+          <article class="card clickable">
+            <div class="avatar">+</div>
+            <div>
+              <strong>229…7294</strong>
+              <p>Media VU · 17:40</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Outils -->
+      <section class="view" id="view-tools">
+        <h2>Outils</h2>
+        <p class="sub">Anti-delete, vues uniques, commandes, téléchargements.</p>
+        <div class="tool-grid">
+          <div class="block">
+            <h3>Anti-delete</h3>
+            <ul class="plain">
+              <li>Image restaurée · 19:01</li>
+              <li>Texte sauvé · 18:44</li>
+              <li>Vocal manquant (non stocké)</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Vues uniques</h3>
+            <ul class="plain">
+              <li>Image · 19:18</li>
+              <li>Vidéo · 16:55</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Commandes</h3>
+            <ul class="plain mono-list">
+              <li>?menu</li>
+              <li>?ping</li>
+              <li>?tagall</li>
+              <li>?vv</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Téléchargements</h3>
+            <ul class="plain">
+              <li>YouTube · en file</li>
+              <li>TikTok · terminé</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Réglages -->
+      <section class="view" id="view-settings">
+        <h2>Réglages</h2>
+        <p class="sub">Config persistée côté bot · mock formulaire.</p>
+        <form class="form" id="cfg">
+          <label class="field"><span>Nom du bot</span><input name="botName" value="bot PDG" /></label>
+          <label class="field"><span>Owner</span><input name="ownerName" value="PDG" /></label>
+          <label class="field"><span>Préfixe</span><input name="prefix" value="?" maxlength="3" /></label>
+          <label class="field"><span>URL serveur</span><input name="server" value="http://127.0.0.1:3000" /></label>
+          <label class="field full"><span>Auto-reply</span><textarea name="auto" rows="3" placeholder="Optionnel"></textarea></label>
+          <label class="field"><span>Délai status min (s)</span><input type="number" value="2" step="0.5" /></label>
+          <label class="field"><span>Délai status max (s)</span><input type="number" value="6" step="0.5" /></label>
+          <div class="row full">
+            <button type="submit" class="btn solid">Sauver</button>
+            <span class="ok-msg hidden" id="cfg-ok">Enregistré</span>
           </div>
         </form>
       </section>
-
-      <div class="toast" id="toast" hidden></div>
     </main>
+
+    <div class="toast hidden" id="toast"></div>
   </div>
 
   <script src="app.js"></script>
